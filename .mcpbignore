@@ -1,0 +1,30 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+
+# Tokens / secrets
+.lex360/
+token.json
+token.env
+
+# Projet — non nécessaire au runtime
+tests/
+scripts/
+docs/
+web/
+screenshots/
+CLAUDE.md
+.claude/
+
+# OS / outils
+.DS_Store
+.git/
+uv.lock
+*.mcpb

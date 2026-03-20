@@ -18,5 +18,8 @@ venv/
 token.json
 token.env
 
+# MCPB
+*.mcpb
+
 # OS
 .DS_Store

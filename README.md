@@ -4,6 +4,43 @@ Client Python pour l'API privée de [Lexis 360 Intelligence](https://www.lexis36
 
 Contourne le TLS fingerprinting via `curl_cffi` pour accéder aux endpoints non documentés : recherche, documents (SSE), navigation, export PDF/DOCX.
 
+## Extension MCP pour Claude
+
+Installez l'extension MCP (`.mcpb`) dans Claude Desktop et accédez directement à la doctrine, la jurisprudence et la navigation Lexis 360 depuis une conversation Claude.
+
+![Claude consulte le JurisClasseur Administratif via Lexis 360](screenshots/screenshot9.png)
+
+### Installation rapide
+
+1. Télécharger `lex360-0.1.0.mcpb` depuis les [releases](.)
+2. Glisser le fichier dans **Paramètres > Extensions** de Claude Desktop
+3. Coller votre token JWT et cliquer **Enregistrer**
+
+Le guide d'installation détaillé avec captures d'écran est disponible dans [`INSTALL.md`](INSTALL.md).
+
+### Outils disponibles (9)
+
+| Outil | Description |
+|-------|-------------|
+| `guide` | Recommande les outils selon le contexte juridique (appeler en premier) |
+| `rechercher` | Recherche full-text (doctrine, JP, revues) avec filtres et tri |
+| `rechercher_decision` | Recherche par n° de pourvoi, JurisData ou RG |
+| `lire_doctrine` | Contenu d'un fascicule JurisClasseur ou article de revue (Markdown) |
+| `lire_decision` | Texte d'une décision de justice (texte brut) |
+| `metadata_document` | Métadonnées enrichies (auteur, juridiction, thématique) |
+| `liens_document` | Liens croisés : doctrine citant, décisions liées, textes visés |
+| `frise_chronologique` | Historique procédural (TGI → CA → Cass.) |
+| `table_des_matieres` | Table des matières d'un document structuré |
+
+### Construire le bundle
+
+```bash
+npm install -g @anthropic-ai/mcpb
+mcpb pack .
+```
+
+---
+
 ## Interface web
 
 Application Flask avec recherche, lecture de documents, export PDF/DOCX et navigation (liens, frise chronologique, arborescence des codes).
@@ -17,7 +54,7 @@ python web/app.py
 # → http://localhost:5000
 ```
 
-## Installation
+## Installation (développement)
 
 ```bash
 pip install -e ".[dev]"

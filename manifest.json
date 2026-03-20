@@ -1,0 +1,83 @@
+{
+  "manifest_version": "0.4",
+  "name": "lex360",
+  "display_name": "Lexis 360 Intelligence",
+  "version": "0.1.0",
+  "description": "Doctrine juridique française, jurisprudence enrichie et navigation inter-documents via Lexis 360 Intelligence. Complémentaire à OpenLégi (codes, JORF, textes consolidés).",
+  "author": {
+    "name": "Pierre-Gilles Chenu"
+  },
+  "keywords": [
+    "droit",
+    "juridique",
+    "doctrine",
+    "jurisprudence",
+    "lexisnexis",
+    "jurisclasseur",
+    "france"
+  ],
+  "server": {
+    "type": "uv",
+    "entry_point": "lex360/mcp_server.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run", "--directory", "${__dirname}", "lex360-mcp"],
+      "env": {
+        "LEX_TOKEN": "${user_config.lex_token}"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "guide",
+      "description": "Recommande les outils Lexis 360 selon le contexte juridique"
+    },
+    {
+      "name": "rechercher",
+      "description": "Recherche full-text (doctrine, jurisprudence, revues)"
+    },
+    {
+      "name": "rechercher_decision",
+      "description": "Recherche par numéro de décision (pourvoi, JurisData, RG)"
+    },
+    {
+      "name": "lire_doctrine",
+      "description": "Contenu d'un fascicule ou article en Markdown"
+    },
+    {
+      "name": "lire_decision",
+      "description": "Texte d'une décision de justice"
+    },
+    {
+      "name": "metadata_document",
+      "description": "Métadonnées enrichies d'un document"
+    },
+    {
+      "name": "liens_document",
+      "description": "Liens croisés entre documents"
+    },
+    {
+      "name": "frise_chronologique",
+      "description": "Historique procédural d'une décision"
+    },
+    {
+      "name": "table_des_matieres",
+      "description": "Table des matières d'un document structuré"
+    }
+  ],
+  "user_config": {
+    "lex_token": {
+      "type": "string",
+      "title": "Token JWT Lexis 360",
+      "description": "Token JWT (expire après 24h). Connectez-vous sur lexis360intelligence.fr, ouvrez la console (F12 > Console) et collez : localStorage.getItem('access_token') — copiez la valeur retournée ici sans les guillemets. Fonctionne dans Chrome, Firefox, Safari et Edge.",
+      "required": true,
+      "sensitive": true
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "linux"],
+    "runtimes": {
+      "python": ">=3.11"
+    }
+  }
+}

@@ -12,19 +12,21 @@ dependencies = [
     "pydantic>=2.0",
     "click>=8.0",
     "beautifulsoup4>=4.12",
+    "mcp>=1.0",
 ]
 
 [project.optional-dependencies]
-mcp = ["mcp>=1.0"]
 web = ["flask>=3.0"]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
     "flask>=3.0",
+    "mcp>=1.0",
 ]
 
 [project.scripts]
 lex360 = "lex360.cli:main"
+lex360-mcp = "lex360.mcp_server:main"
 
 [tool.pytest.ini_options]
 addopts = "-p no:asyncio -p no:anyio"

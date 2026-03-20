@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lex360 Intelligence</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface2: #232736;
+            --border: #2e3345;
+            --text: #e4e6f0;
+            --text-muted: #8b90a5;
+            --accent: #6c8cff;
+            --accent-hover: #8aa4ff;
+            --danger: #ff5c5c;
+            --success: #4ecb71;
+            --warning: #ffb84d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Layout */
+        .app {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .sidebar-header .subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .nav-section {
+            padding: 12px 0;
+        }
+
+        .nav-section-title {
+            padding: 4px 20px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 20px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+            border-left-color: var(--accent);
+            background: rgba(108, 140, 255, 0.08);
+        }
+
+        .nav-icon {
+            width: 18px;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        /* Token status */
+        .token-status {
+            margin-top: auto;
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+        }
+
+        .token-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .token-badge.valid {
+            background: rgba(78, 203, 113, 0.15);
+            color: var(--success);
+        }
+
+        .token-badge.invalid {
+            background: rgba(255, 92, 92, 0.15);
+            color: var(--danger);
+        }
+
+        .token-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Main content */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .main-header {
+            padding: 16px 28px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .main-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px;
+        }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* Forms */
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group.flex-1 { flex: 1; }
+
+        label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        button, .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        button:hover, .btn:hover {
+            background: var(--accent-hover);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Results */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .result-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: border-color 0.15s;
+        }
+
+        .result-card:hover {
+            border-color: var(--accent);
+        }
+
+        .result-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            color: var(--accent);
+        }
+
+        .result-title:hover {
+            text-decoration: underline;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .result-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+        }
+
+        .result-highlight {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .result-highlight em {
+            color: var(--warning);
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        .result-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 6px;
+        }
+
+        /* Document viewer */
+        .doc-viewer {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 900px;
+        }
+
+        .doc-content {
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .doc-content.text-mode {
+            white-space: pre-wrap;
+        }
+
+        .doc-content h1, .doc-content h2, .doc-content h3 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .doc-content p {
+            margin-bottom: 12px;
+        }
+
+        .doc-content a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .doc-content a:hover {
+            text-decoration: underline;
+        }
+
+        /* Metadata */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 8px 16px;
+            font-size: 14px;
+        }
+
+        .meta-key {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .meta-value {
+            word-break: break-all;
+        }
+
+        /* Navigation sections */
+        .nav-section-card {
+            margin-bottom: 16px;
+        }
+
+        .nav-section-card h4 {
+            font-size: 14px;
+            color: var(--accent);
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .link-item {
+            padding: 6px 0;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(46, 51, 69, 0.5);
+        }
+
+        .link-item:last-child {
+            border-bottom: none;
+        }
+
+        .link-item a {
+            color: var(--accent);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .link-item a:hover {
+            text-decoration: underline;
+        }
+
+        .link-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-left: 8px;
+        }
+
+        /* Code tree */
+        .tree-node {
+            padding-left: 20px;
+        }
+
+        .tree-node-title {
+            padding: 4px 0;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .tree-node-title:hover {
+            color: var(--accent);
+        }
+
+        .tree-toggle {
+            display: inline-block;
+            width: 16px;
+            color: var(--text-muted);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .timeline-entry {
+            position: relative;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .timeline-entry::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 16px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid var(--bg);
+        }
+
+        .timeline-date {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        /* JSON viewer */
+        .json-viewer {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        /* Loading & errors */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-msg {
+            background: rgba(255, 92, 92, 0.1);
+            border: 1px solid rgba(255, 92, 92, 0.3);
+            color: var(--danger);
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        /* Modal token */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 24px;
+            width: 500px;
+            max-width: 90vw;
+        }
+
+        .modal h3 {
+            margin-bottom: 16px;
+        }
+
+        .modal .form-group {
+            margin-bottom: 16px;
+        }
+
+        .modal textarea {
+            width: 100%;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        /* Tabs (doc viewer) */
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            padding: 8px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s;
+        }
+
+        .tab:hover { color: var(--text); }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 60px; }
+            .sidebar .nav-label, .sidebar-header .subtitle,
+            .sidebar-header h1, .nav-section-title, .token-status span { display: none; }
+            .nav-item { justify-content: center; padding: 12px; }
+            .sidebar-header { padding: 12px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>Lex360</h1>
+                <div class="subtitle">Intelligence</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Recherche</div>
+                <div class="nav-item active" onclick="showPanel('search')">
+                    <span class="nav-icon">&#128269;</span>
+                    <span class="nav-label">Recherche</span>
+                </div>
+                <div class="nav-item" onclick="showPanel('search-number')">
+                    <span class="nav-icon">#</span>
+                    <span class="nav-label">Par numéro</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Documents</div>
+                <div class="nav-item" onclick="showPanel('document')">
+                    <span class="nav-icon">&#128196;</span>
+                    <span class="nav-label">Consulter</span>
+                </div>
+                <div class="nav-item" onclick="showPanel('export')">
+                    <span class="nav-icon">&#11015;</span>
+                    <span class="nav-label">Exporter</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Navigation</div>
+                <div class="nav-item" onclick="showPanel('links')">
+                    <span class="nav-icon">&#128279;</span>
+                    <span class="nav-label">Liens</span>
+                </div>
+                <div class="nav-item" onclick="showPanel('timeline')">
+                    <span class="nav-icon">&#9200;</span>
+                    <span class="nav-label">Frise</span>
+                </div>
+                <div class="nav-item" onclick="showPanel('codes')">
+                    <span class="nav-icon">&#128218;</span>
+                    <span class="nav-label">Codes</span>
+                </div>
+            </div>
+
+            <div class="token-status">
+                {% if token_info and token_info.valid %}
+                <div class="token-badge valid">
+                    <span class="token-dot"></span>
+                    <span>Connecté</span>
+                </div>
+                <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">
+                    {{ token_info.email }}
+                </div>
+                {% else %}
+                <div class="token-badge invalid" style="cursor:pointer" onclick="openTokenModal()">
+                    <span class="token-dot"></span>
+                    <span>Non connecté</span>
+                </div>
+                {% endif %}
+                <div style="margin-top:8px">
+                    <button class="btn-sm btn-secondary" onclick="openTokenModal()">Token</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main -->
+        <div class="main">
+            <div class="main-header">
+                <h2 id="panel-title">Recherche</h2>
+            </div>
+
+            <div class="content">
+                <!-- Panel : Recherche -->
+                <div id="panel-search" class="panel active">
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="search-q">Requête</label>
+                            <input type="text" id="search-q" placeholder="licenciement abusif, droit au bail..."
+                                   onkeydown="if(event.key==='Enter')doSearch()">
+                        </div>
+                        <div class="form-group">
+                            <label for="search-type">Type</label>
+                            <select id="search-type">
+                                <option value="">Tous</option>
+                                <option value="JURISPRUDENCE">Jurisprudence</option>
+                                <option value="JURISPRUDENCE_COURCASSATION">Cour de cassation</option>
+                                <option value="JURISPRUDENCE_COUAPPEL">Cours d'appel</option>
+                                <option value="DOCTRINE">Doctrine (tout)</option>
+                                <option value="DOCTRINE_FASCICULE">Encyclopédies uniquement</option>
+                                <option value="REVUES">Revues</option>
+                                <option value="FICHES_PRATIQUES">Fiches pratiques</option>
+                                <option value="FORMULE">Formules</option>
+                                <option value="ACTUALITIES">Actualités</option>
+                                <option value="PUBLICATION_OFFICIELLE">Publications officielles</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="search-sort">Tri</label>
+                            <select id="search-sort">
+                                <option value="SCORE">Pertinence</option>
+                                <option value="DATE">Date</option>
+                            </select>
+                        </div>
+                        <button onclick="doSearch()">Rechercher</button>
+                    </div>
+                    <div id="search-results"></div>
+                </div>
+
+                <!-- Panel : Recherche par numéro -->
+                <div id="panel-search-number" class="panel">
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="number-input">Numéro (pourvoi, JurisData, RG, requête)</label>
+                            <input type="text" id="number-input" placeholder="22-84.760, 2025-017611, 19/01466..."
+                                   onkeydown="if(event.key==='Enter')doSearchNumber()">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="number-strict" checked> Strict
+                            </label>
+                        </div>
+                        <button onclick="doSearchNumber()">Rechercher</button>
+                    </div>
+                    <div id="number-results"></div>
+                </div>
+
+                <!-- Panel : Document -->
+                <div id="panel-document" class="panel">
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="doc-id">ID du document</label>
+                            <input type="text" id="doc-id" placeholder="EN_KEJC-238100_0KR8, JP_KODCASS-..."
+                                   onkeydown="if(event.key==='Enter')loadDocument()">
+                        </div>
+                        <div class="form-group">
+                            <label for="doc-format">Format</label>
+                            <select id="doc-format">
+                                <option value="html">HTML (rendu)</option>
+                                <option value="auto">Auto (texte)</option>
+                                <option value="markdown">Markdown</option>
+                                <option value="text">Texte brut</option>
+                            </select>
+                        </div>
+                        <button onclick="loadDocument()">Charger</button>
+                    </div>
+
+                    <div class="tabs" id="doc-tabs" style="display:none">
+                        <div class="tab active" onclick="showDocTab('content')">Contenu</div>
+                        <div class="tab" onclick="showDocTab('metadata')">Métadonnées</div>
+                        <div class="tab" onclick="showDocTab('json')">JSON brut</div>
+                    </div>
+
+                    <div id="doc-content-area"></div>
+                    <div id="doc-metadata-area" style="display:none"></div>
+                    <div id="doc-json-area" style="display:none"></div>
+                </div>
+
+                <!-- Panel : Export -->
+                <div id="panel-export" class="panel">
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="export-id">ID du document</label>
+                            <input type="text" id="export-id" placeholder="EN_KEJC-238100_0KR8">
+                        </div>
+                        <div class="btn-group" style="align-self:flex-end">
+                            <button onclick="doExport('pdf')">Télécharger PDF</button>
+                            <button onclick="doExport('docx')" class="btn-secondary">Télécharger DOCX</button>
+                        </div>
+                    </div>
+                    <div id="export-status"></div>
+                </div>
+
+                <!-- Panel : Liens -->
+                <div id="panel-links" class="panel">
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="links-id">ID du document</label>
+                            <input type="text" id="links-id" placeholder="JP_KODCASS-..."
+                                   onkeydown="if(event.key==='Enter')loadLinks()">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="links-jp"> Mode jurisprudence
+                            </label>
+                        </div>
+                        <button onclick="loadLinks()">Charger</button>
+                    </div>
+                    <div id="links-results"></div>
+                </div>
+
+                <!-- Panel : Timeline -->
+                <div id="panel-timeline" class="panel">
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="timeline-id">ID du document</label>
+                            <input type="text" id="timeline-id" placeholder="JP_KODCASS-..."
+                                   onkeydown="if(event.key==='Enter')loadTimeline()">
+                        </div>
+                        <button onclick="loadTimeline()">Charger</button>
+                    </div>
+                    <div id="timeline-results"></div>
+                </div>
+
+                <!-- Panel : Codes -->
+                <div id="panel-codes" class="panel">
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="code-id">ID du code (docIdStable)</label>
+                            <input type="text" id="code-id" placeholder="SLD-LEGITEXT000006070721"
+                                   onkeydown="if(event.key==='Enter')loadCodeTree()" value="SLD-LEGITEXT000006070721">
+                        </div>
+                        <button onclick="loadCodeTree()">Charger</button>
+                    </div>
+                    <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px">
+                        Exemples : Code civil = SLD-LEGITEXT000006070721, Code penal = SLD-LEGITEXT000006070719,
+                        Code du travail = SLD-LEGITEXT000006072050
+                    </p>
+                    <div id="codes-results"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal token -->
+    <div class="modal-overlay" id="token-modal">
+        <div class="modal" style="width:600px">
+            <h3>Configurer le token JWT</h3>
+
+            <div style="margin-bottom:16px;font-size:13px;color:var(--text-muted);line-height:1.6">
+                <p style="margin-bottom:10px">Connectez-vous sur
+                    <a href="https://www.lexis360intelligence.fr" target="_blank" style="color:var(--accent)">lexis360intelligence.fr</a>,
+                    puis récupérez le token depuis la console du navigateur :
+                </p>
+
+                <details style="margin-bottom:8px" open>
+                    <summary style="cursor:pointer;color:var(--text);font-weight:600;margin-bottom:6px">Chrome</summary>
+                    <ol style="padding-left:20px;margin:0">
+                        <li>Appuyez sur <kbd style="background:var(--surface2);padding:1px 5px;border-radius:3px;border:1px solid var(--border);font-size:12px">F12</kbd> ou <kbd style="background:var(--surface2);padding:1px 5px;border-radius:3px;border:1px solid var(--border);font-size:12px">Cmd+Option+J</kbd></li>
+                        <li>Allez dans l'onglet <strong style="color:var(--text)">Console</strong></li>
+                        <li>Tapez : <code style="background:var(--surface2);padding:2px 6px;border-radius:3px;font-size:12px">localStorage.getItem('access_token')</code></li>
+                        <li>Copiez la valeur retournée (sans les guillemets)</li>
+                    </ol>
+                </details>
+
+                <details>
+                    <summary style="cursor:pointer;color:var(--text);font-weight:600;margin-bottom:6px">Firefox</summary>
+                    <ol style="padding-left:20px;margin:0">
+                        <li>Appuyez sur <kbd style="background:var(--surface2);padding:1px 5px;border-radius:3px;border:1px solid var(--border);font-size:12px">F12</kbd> ou <kbd style="background:var(--surface2);padding:1px 5px;border-radius:3px;border:1px solid var(--border);font-size:12px">Cmd+Option+K</kbd></li>
+                        <li>Allez dans l'onglet <strong style="color:var(--text)">Console</strong></li>
+                        <li>Tapez : <code style="background:var(--surface2);padding:2px 6px;border-radius:3px;font-size:12px">localStorage.getItem('access_token')</code></li>
+                        <li>Copiez la valeur retournée (sans les guillemets)</li>
+                    </ol>
+                </details>
+
+                <p style="margin-top:10px;font-size:12px;opacity:0.7">Le token expire au bout de 24h. Renouvelez-le en vous reconnectant sur Lexis 360.</p>
+            </div>
+
+            <div class="form-group">
+                <label>Token</label>
+                <textarea id="token-input" rows="3" placeholder="eyJhbGciOiJSUzI1NiIs..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeTokenModal()">Annuler</button>
+                <button onclick="saveToken()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ──────────────────────────────────────────────
+    // Navigation
+    // ──────────────────────────────────────────────
+
+    const panelTitles = {
+        'search': 'Recherche',
+        'search-number': 'Recherche par numéro',
+        'document': 'Consulter un document',
+        'export': 'Exporter un document',
+        'links': 'Liens de navigation',
+        'timeline': 'Frise chronologique',
+        'codes': 'Arborescence des codes',
+    };
+
+    function showPanel(name) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('panel-' + name).classList.add('active');
+        document.getElementById('panel-title').textContent = panelTitles[name] || name;
+        // Highlight nav
+        const items = document.querySelectorAll('.nav-item');
+        const panels = ['search', 'search-number', 'document', 'export', 'links', 'timeline', 'codes'];
+        const idx = panels.indexOf(name);
+        if (idx >= 0 && items[idx]) items[idx].classList.add('active');
+    }
+
+    // ──────────────────────────────────────────────
+    // Token
+    // ──────────────────────────────────────────────
+
+    function openTokenModal() {
+        document.getElementById('token-modal').classList.add('active');
+    }
+
+    function closeTokenModal() {
+        document.getElementById('token-modal').classList.remove('active');
+    }
+
+    async function saveToken() {
+        const token = document.getElementById('token-input').value.trim();
+        if (!token) return;
+        const resp = await fetch('/api/token', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({token}),
+        });
+        if (resp.ok) {
+            closeTokenModal();
+            location.reload();
+        } else {
+            const data = await resp.json();
+            alert('Erreur: ' + (data.error || 'Inconnu'));
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // Helpers
+    // ──────────────────────────────────────────────
+
+    function loading(el) {
+        el.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:12px">Chargement...</p></div>';
+    }
+
+    function showError(el, msg, data) {
+        let extra = '';
+        if (data?.type === 'auth') {
+            extra = '<div style="margin-top:8px"><button class="btn-sm" onclick="openTokenModal()">Configurer le token</button></div>';
+        } else if (data?.type === 'not_found') {
+            extra = '<div style="margin-top:4px;font-size:12px;opacity:0.8">Vérifiez l\'identifiant du document.</div>';
+        } else if (data?.type === 'transport') {
+            extra = '<div style="margin-top:4px;font-size:12px;opacity:0.8">Le serveur Lexis 360 est peut-etre injoignable ou le token a expiré.</div>';
+        }
+        const message = data?.message || msg;
+        el.innerHTML = `<div class="error-msg">${escapeHtml(message)}${extra}</div>`;
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function formatDate(ms) {
+        if (!ms) return '';
+        return new Date(ms).toLocaleDateString('fr-FR');
+    }
+
+    function formatJson(obj) {
+        return JSON.stringify(obj, null, 2);
+    }
+
+    // ──────────────────────────────────────────────
+    // Recherche
+    // ──────────────────────────────────────────────
+
+    let searchOffset = 0;
+    let searchTotal = 0;
+
+    async function doSearch(offset = 0) {
+        const q = document.getElementById('search-q').value.trim();
+        if (!q) return;
+
+        const type = document.getElementById('search-type').value;
+        const sort = document.getElementById('search-sort').value;
+        const el = document.getElementById('search-results');
+        loading(el);
+        searchOffset = offset;
+
+        const params = new URLSearchParams({q, sort, size: 10, offset});
+        if (type) params.set('type', type);
+
+        try {
+            const resp = await fetch('/api/search?' + params);
+            const data = await resp.json();
+            if (data.error) { showError(el, data.error, data); return; }
+            renderSearchResults(el, data, offset);
+        } catch (e) {
+            showError(el, e.message);
+        }
+    }
+
+    function renderSearchResults(el, data, offset) {
+        const hits = data.data?.hits || [];
+        const total = data.data?.total || 0;
+        searchTotal = total;
+
+        if (hits.length === 0) {
+            el.innerHTML = '<div class="empty-state"><div class="icon">&#128270;</div><p>Aucun résultat</p></div>';
+            return;
+        }
+
+        let html = `<div class="results-header"><span>${total} résultats</span><span>Page ${Math.floor(offset/10)+1}</span></div>`;
+
+        for (const hit of hits) {
+            const title = hit.source?.document?.title || hit.id;
+            const type = hit.source?.document?.type || '';
+            const date = formatDate(hit.source?.document?.date);
+            const highlights = hit.highlights?.text || hit.highlights?.title || [];
+            const highlightHtml = highlights.slice(0, 2).join(' ... ');
+
+            html += `
+            <div class="result-card">
+                <div class="result-title" onclick="openDoc('${escapeHtml(hit.id)}')">${escapeHtml(title)}</div>
+                <div class="result-meta">
+                    <span class="result-type">${escapeHtml(type)}</span>
+                    ${date ? `<span>${date}</span>` : ''}
+                    <span style="opacity:0.5">${escapeHtml(hit.id)}</span>
+                </div>
+                ${highlightHtml ? `<div class="result-highlight">${highlightHtml}</div>` : ''}
+                <div class="result-actions">
+                    <button class="btn-sm" onclick="openDoc('${escapeHtml(hit.id)}')">Lire</button>
+                    <button class="btn-sm btn-secondary" onclick="openExport('${escapeHtml(hit.id)}')">Exporter</button>
+                    <button class="btn-sm btn-secondary" onclick="openLinks('${escapeHtml(hit.id)}')">Liens</button>
+                </div>
+            </div>`;
+        }
+
+        // Pagination
+        if (total > 10) {
+            html += '<div class="pagination">';
+            if (offset > 0) html += `<button class="btn-sm btn-secondary" onclick="doSearch(${offset-10})">Précédent</button>`;
+            if (offset + 10 < total) html += `<button class="btn-sm btn-secondary" onclick="doSearch(${offset+10})">Suivant</button>`;
+            html += '</div>';
+        }
+
+        el.innerHTML = html;
+    }
+
+    // ──────────────────────────────────────────────
+    // Recherche par numéro
+    // ──────────────────────────────────────────────
+
+    async function doSearchNumber() {
+        const number = document.getElementById('number-input').value.trim();
+        if (!number) return;
+
+        const strict = document.getElementById('number-strict').checked;
+        const el = document.getElementById('number-results');
+        loading(el);
+
+        try {
+            const resp = await fetch(`/api/search/number?number=${encodeURIComponent(number)}&strict=${strict}`);
+            const data = await resp.json();
+            if (data.error) { showError(el, data.error, data); return; }
+            renderSearchResults(el, data, 0);
+        } catch (e) {
+            showError(el, e.message);
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // Document
+    // ──────────────────────────────────────────────
+
+    function openDoc(docId) {
+        document.getElementById('doc-id').value = docId;
+        showPanel('document');
+        loadDocument();
+    }
+
+    async function loadDocument() {
+        const docId = document.getElementById('doc-id').value.trim();
+        if (!docId) return;
+
+        const fmt = document.getElementById('doc-format').value;
+        const contentEl = document.getElementById('doc-content-area');
+        const metaEl = document.getElementById('doc-metadata-area');
+        const jsonEl = document.getElementById('doc-json-area');
+        const tabsEl = document.getElementById('doc-tabs');
+
+        loading(contentEl);
+        tabsEl.style.display = 'none';
+        metaEl.style.display = 'none';
+        jsonEl.style.display = 'none';
+
+        try {
+            // Charger contenu et métadonnées en parallèle
+            const [contentResp, metaResp] = await Promise.all([
+                fetch(`/api/document/${encodeURIComponent(docId)}/content?format=${fmt}`),
+                fetch(`/api/document/${encodeURIComponent(docId)}/metadata`),
+            ]);
+
+            const contentData = await contentResp.json();
+            const metaData = await metaResp.json();
+
+            if (contentData.error) { showError(contentEl, contentData.error, contentData); return; }
+
+            tabsEl.style.display = 'flex';
+            showDocTab('content');
+
+            // Contenu
+            const isHtml = (fmt === 'html' || contentData.format === 'html');
+            if (isHtml) {
+                contentEl.innerHTML = `<div class="doc-viewer"><div class="doc-content">${contentData.content}</div></div>`;
+            } else {
+                contentEl.innerHTML = `<div class="doc-viewer"><div class="doc-content text-mode">${escapeHtml(contentData.content)}</div></div>`;
+            }
+
+            // Métadonnées
+            if (!metaData.error) {
+                let metaHtml = '<div class="meta-grid">';
+                const doc = metaData.document || {};
+                const jp = metaData.jurisprudence || {};
+                const enc = metaData.encyclo || {};
+
+                const fields = [
+                    ['ID', metaData._id],
+                    ['Titre', doc.title],
+                    ['Type', doc.type || doc.typeContenu],
+                    ['Date', formatDate(doc.date)],
+                    ['Thematique', doc.thematique],
+                    ['KID', doc.kid],
+                    ['Doc ID Stable', doc.docIdStable],
+                ];
+
+                if (jp.classeJuridiction) fields.push(['Juridiction', jp.classeJuridiction]);
+                if (jp.solutionJuridiqueLabel) fields.push(['Solution', jp.solutionJuridiqueLabel]);
+                if (jp.typeFormation) fields.push(['Formation', jp.typeFormation]);
+                if (jp.numeroJurisprudence?.length) fields.push(['Numéros', jp.numeroJurisprudence.join(', ')]);
+                if (jp.themes?.length) fields.push(['Themes', jp.themes.join(', ')]);
+
+                if (enc.codePublicationLabel) fields.push(['Publication', enc.codePublicationLabel]);
+                if (enc.auteur?.length) fields.push(['Auteur(s)', enc.auteur.join(', ')]);
+
+                for (const [k, v] of fields) {
+                    if (v) metaHtml += `<div class="meta-key">${escapeHtml(k)}</div><div class="meta-value">${escapeHtml(String(v))}</div>`;
+                }
+                metaHtml += '</div>';
+                metaEl.innerHTML = metaHtml;
+            }
+
+            // JSON brut
+            jsonEl.innerHTML = `<div class="json-viewer">${escapeHtml(formatJson(metaData))}</div>`;
+
+        } catch (e) {
+            showError(contentEl, e.message);
+        }
+    }
+
+    function showDocTab(tab) {
+        const tabs = document.querySelectorAll('#doc-tabs .tab');
+        tabs.forEach(t => t.classList.remove('active'));
+
+        document.getElementById('doc-content-area').style.display = tab === 'content' ? 'block' : 'none';
+        document.getElementById('doc-metadata-area').style.display = tab === 'metadata' ? 'block' : 'none';
+        document.getElementById('doc-json-area').style.display = tab === 'json' ? 'block' : 'none';
+
+        const idx = ['content', 'metadata', 'json'].indexOf(tab);
+        if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
+    }
+
+    // ──────────────────────────────────────────────
+    // Export
+    // ──────────────────────────────────────────────
+
+    function openExport(docId) {
+        document.getElementById('export-id').value = docId;
+        showPanel('export');
+    }
+
+    function doExport(fmt) {
+        const docId = document.getElementById('export-id').value.trim();
+        if (!docId) return;
+
+        const el = document.getElementById('export-status');
+        el.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:8px">Téléchargement...</p></div>';
+
+        // Télécharger via un lien invisible
+        const a = document.createElement('a');
+        a.href = `/api/document/${encodeURIComponent(docId)}/export/${fmt}`;
+        a.download = `${docId}.${fmt}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        setTimeout(() => {
+            el.innerHTML = '<div style="color:var(--success)">Téléchargement lancé.</div>';
+        }, 1500);
+    }
+
+    // ──────────────────────────────────────────────
+    // Liens
+    // ──────────────────────────────────────────────
+
+    function openLinks(docId) {
+        document.getElementById('links-id').value = docId;
+        showPanel('links');
+        loadLinks();
+    }
+
+    async function loadLinks() {
+        const docId = document.getElementById('links-id').value.trim();
+        if (!docId) return;
+
+        const jp = document.getElementById('links-jp').checked;
+        const el = document.getElementById('links-results');
+        loading(el);
+
+        try {
+            const resp = await fetch(`/api/document/${encodeURIComponent(docId)}/links?jp=${jp}`);
+            const data = await resp.json();
+            if (data.error) { showError(el, data.error, data); return; }
+
+            if (!Array.isArray(data) || data.length === 0) {
+                el.innerHTML = '<div class="empty-state"><p>Aucun lien trouvé</p></div>';
+                return;
+            }
+
+            let html = '';
+            for (const section of data) {
+                if (!section.links?.length) continue;
+                html += `<div class="nav-section-card">
+                    <h4>${escapeHtml(section.title || section.qualif || 'Liens')}
+                        <span style="font-weight:normal;font-size:12px;color:var(--text-muted)">
+                            (${section.links.length})
+                        </span>
+                    </h4>`;
+
+                for (const link of section.links) {
+                    const date = formatDate(link.date);
+                    html += `<div class="link-item">
+                        <a onclick="openDoc('${escapeHtml(link.docId || link.doc_id || '')}')">${escapeHtml(link.title || link.docId || link.doc_id)}</a>
+                        ${date ? `<span class="link-date">${date}</span>` : ''}
+                        ${link.type ? `<span class="result-type" style="margin-left:8px">${escapeHtml(link.type)}</span>` : ''}
+                    </div>`;
+                }
+                html += '</div>';
+            }
+            el.innerHTML = html || '<div class="empty-state"><p>Aucun lien trouvé</p></div>';
+
+        } catch (e) {
+            showError(el, e.message);
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // Timeline
+    // ──────────────────────────────────────────────
+
+    async function loadTimeline() {
+        const docId = document.getElementById('timeline-id').value.trim();
+        if (!docId) return;
+
+        const el = document.getElementById('timeline-results');
+        loading(el);
+
+        try {
+            const resp = await fetch(`/api/document/${encodeURIComponent(docId)}/timeline`);
+            const data = await resp.json();
+            if (data.error) { showError(el, data.error, data); return; }
+
+            // data est un dict docId -> entries[]
+            const entries = Object.values(data).flat();
+            if (entries.length === 0) {
+                el.innerHTML = '<div class="empty-state"><p>Aucune entrée dans la frise</p></div>';
+                return;
+            }
+
+            let html = '<div class="timeline">';
+            for (const entry of entries) {
+                const dateArr = entry.date || [];
+                const dateStr = dateArr.length >= 3 ? `${dateArr[2]}/${dateArr[1]}/${dateArr[0]}` : '';
+                html += `<div class="timeline-entry">
+                    <div class="timeline-date">${escapeHtml(dateStr)}</div>
+                    <div style="font-weight:600;margin-bottom:4px">
+                        ${escapeHtml(entry.classeJuridiction || entry.qualif || '')}
+                        ${entry.solutionLabel ? ' - ' + escapeHtml(entry.solutionLabel) : ''}
+                    </div>
+                    ${entry.numeros?.length ? `<div style="font-size:12px;color:var(--text-muted)">${entry.numeros.map(escapeHtml).join(', ')}</div>` : ''}
+                    ${entry.docId ? `<div style="margin-top:6px"><a style="color:var(--accent);cursor:pointer;font-size:12px" onclick="openDoc('${escapeHtml(entry.docId)}')">${escapeHtml(entry.docId)}</a></div>` : ''}
+                </div>`;
+            }
+            html += '</div>';
+            el.innerHTML = html;
+
+        } catch (e) {
+            showError(el, e.message);
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // Codes
+    // ──────────────────────────────────────────────
+
+    async function loadCodeTree() {
+        const codeId = document.getElementById('code-id').value.trim();
+        if (!codeId) return;
+
+        const el = document.getElementById('codes-results');
+        loading(el);
+
+        try {
+            const resp = await fetch(`/api/codes/${encodeURIComponent(codeId)}`);
+            const data = await resp.json();
+            if (data.error) { showError(el, data.error, data); return; }
+
+            const root = data.root || [];
+            if (root.length === 0) {
+                el.innerHTML = '<div class="empty-state"><p>Arborescence vide</p></div>';
+                return;
+            }
+
+            el.innerHTML = `<h3 style="margin-bottom:16px">${escapeHtml(data.title || codeId)}</h3>` + renderTreeNodes(root);
+
+        } catch (e) {
+            showError(el, e.message);
+        }
+    }
+
+    function renderTreeNodes(nodes, depth = 0) {
+        let html = '';
+        for (const node of nodes) {
+            const hasChildren = node.children && node.children.length > 0;
+            const id = 'tree-' + Math.random().toString(36).substr(2, 9);
+            html += `<div class="tree-node" style="padding-left:${depth * 20}px">
+                <div class="tree-node-title" onclick="${hasChildren ? `toggleTree('${id}')` : `openDoc('${escapeHtml(node.doc_id_stable || node.docIdStable || '')}')`}">
+                    ${hasChildren ? `<span class="tree-toggle" id="toggle-${id}">&#9654;</span>` : '<span style="display:inline-block;width:16px"></span>'}
+                    ${escapeHtml(node.title)}
+                </div>
+                ${hasChildren ? `<div id="${id}" style="display:none">${renderTreeNodes(node.children, depth + 1)}</div>` : ''}
+            </div>`;
+        }
+        return html;
+    }
+
+    function toggleTree(id) {
+        const el = document.getElementById(id);
+        const toggle = document.getElementById('toggle-' + id);
+        if (el.style.display === 'none') {
+            el.style.display = 'block';
+            toggle.innerHTML = '&#9660;';
+        } else {
+            el.style.display = 'none';
+            toggle.innerHTML = '&#9654;';
+        }
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Claude Code
+CLAUDE.md
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+.pytest_cache/
+
+# Tokens
+.lex360/
+token.json
+token.env
+
+# OS
+.DS_Store

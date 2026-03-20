@@ -1,0 +1,7 @@
+HTTP/2 200 
+date: Thu, 19 Mar 2026 10:26:00 GMT
+content-type: application/json
+server: istio-envoy
+x-envoy-decorator-operation: api-recherche.front.svc.cluster.local:8080/*
+x-envoy-upstream-service-time: 19
+

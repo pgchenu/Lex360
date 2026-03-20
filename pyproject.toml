@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lex360"
+version = "0.1.0"
+description = "Client Python pour l'API privée de Lexis 360 Intelligence"
+requires-python = ">=3.11"
+dependencies = [
+    "curl_cffi>=0.7",
+    "pydantic>=2.0",
+    "click>=8.0",
+    "beautifulsoup4>=4.12",
+]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.0"]
+web = ["flask>=3.0"]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "flask>=3.0",
+]
+
+[project.scripts]
+lex360 = "lex360.cli:main"
+
+[tool.pytest.ini_options]
+addopts = "-p no:asyncio -p no:anyio"
+markers = [
+    "integration: tests nécessitant un LEX_TOKEN valide",
+]

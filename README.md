@@ -8,6 +8,9 @@ Contourne le TLS fingerprinting via `curl_cffi` pour accéder aux endpoints non 
 
 Application Flask avec recherche, lecture de documents, export PDF/DOCX et navigation (liens, frise chronologique, arborescence des codes).
 
+![Recherche avec filtres](screenshots/screenshot1.png)
+![Consultation de document](screenshots/screenshot2.png)
+
 ```bash
 pip install -e ".[web]"
 python web/app.py

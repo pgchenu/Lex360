@@ -7,7 +7,7 @@
 
 ## Étape 1 — Télécharger le fichier `.mcpb`
 
-Récupérez `lex360-0.1.0.mcpb` depuis les [releases](.).
+Récupérez `lex360-0.2.0.mcpb` depuis les [releases](.).
 
 ## Étape 2 — Ouvrir les extensions Claude Desktop
 
@@ -19,7 +19,7 @@ Dans Claude Desktop, allez dans **Paramètres > Extensions**. Vous verrez la zon
 
 ## Étape 3 — Installer l'extension
 
-Glissez le fichier `lex360-0.1.0.mcpb` dans la zone de dépôt. Claude Desktop affiche un aperçu de l'extension avec ses 9 outils. Cliquez **Installer**.
+Glissez le fichier `lex360-0.2.0.mcpb` dans la zone de dépôt. Claude Desktop affiche un aperçu de l'extension avec ses 12 outils. Cliquez **Installer**.
 
 ![Aperçu de l'extension avec le bouton Installer](screenshots/screenshot4.png)
 

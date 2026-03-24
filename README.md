@@ -4,30 +4,54 @@ Client Python pour l'API privée de [Lexis 360 Intelligence](https://www.lexis36
 
 Contourne le TLS fingerprinting via `curl_cffi` pour accéder aux endpoints non documentés : recherche, documents (SSE), navigation, export PDF/DOCX.
 
+Compatible **macOS**, **Linux** et **Windows**.
+
 ## Extension MCP pour Claude
 
-Installez l'extension MCP (`.mcpb`) dans Claude Desktop et accédez directement à la doctrine, la jurisprudence et la navigation Lexis 360 depuis une conversation Claude.
+Installez l'extension MCP (`.mcpb`) dans Claude Desktop et accédez directement à la doctrine, la jurisprudence, les codes annotés et la navigation Lexis 360 depuis une conversation Claude.
 
 ![Claude consulte le JurisClasseur Administratif via Lexis 360](screenshots/screenshot9.png)
 
 ### Installation rapide
 
-1. Télécharger `lex360-0.1.0.mcpb` depuis les [releases](.)
+1. Télécharger `lex360-0.2.0.mcpb` depuis les [releases](.)
 2. Glisser le fichier dans **Paramètres > Extensions** de Claude Desktop
 3. Coller votre token JWT et cliquer **Enregistrer**
 
+Fonctionne sur macOS, Linux et Windows (Claude Desktop + Python 3.11+).
+
 Le guide d'installation détaillé avec captures d'écran est disponible dans [`INSTALL.md`](INSTALL.md).
 
-### Outils disponibles (9)
+### Outils disponibles (12)
+
+#### Recherche
 
 | Outil | Description |
 |-------|-------------|
 | `guide` | Recommande les outils selon le contexte juridique (appeler en premier) |
 | `rechercher` | Recherche full-text (doctrine, JP, revues) avec filtres et tri |
 | `rechercher_decision` | Recherche par n° de pourvoi, JurisData ou RG |
+
+#### Codes annotés et textes de loi
+
+| Outil | Description |
+|-------|-------------|
+| `arborescence_code` | Structure d'un code juridique (Code civil, Code pénal, etc.) avec doc_id de chaque article |
+| `lire_article_code` | Article de code annoté — texte + annotations doctrine et jurisprudence |
+| `lire_texte` | Textes législatifs et réglementaires (lois, décrets, ordonnances) |
+
+#### Doctrine et jurisprudence
+
+| Outil | Description |
+|-------|-------------|
 | `lire_doctrine` | Contenu d'un fascicule JurisClasseur ou article de revue (Markdown) |
 | `lire_decision` | Texte d'une décision de justice (texte brut) |
 | `metadata_document` | Métadonnées enrichies (auteur, juridiction, thématique) |
+
+#### Navigation inter-documents
+
+| Outil | Description |
+|-------|-------------|
 | `liens_document` | Liens croisés : doctrine citant, décisions liées, textes visés |
 | `frise_chronologique` | Historique procédural (TGI → CA → Cass.) |
 | `table_des_matieres` | Table des matières d'un document structuré |

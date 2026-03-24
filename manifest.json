@@ -2,8 +2,8 @@
   "manifest_version": "0.4",
   "name": "lex360",
   "display_name": "Lexis 360 Intelligence",
-  "version": "0.1.0",
-  "description": "Doctrine juridique française, jurisprudence enrichie et navigation inter-documents via Lexis 360 Intelligence. Complémentaire à OpenLégi (codes, JORF, textes consolidés).",
+  "version": "0.2.0",
+  "description": "Doctrine juridique française, jurisprudence enrichie et navigation inter-documents via Lexis 360 Intelligence.",
   "author": {
     "name": "Pierre-Gilles Chenu"
   },
@@ -63,6 +63,18 @@
     {
       "name": "table_des_matieres",
       "description": "Table des matières d'un document structuré"
+    },
+    {
+      "name": "arborescence_code",
+      "description": "Arborescence d'un code juridique (Code civil, Code pénal, etc.)"
+    },
+    {
+      "name": "lire_article_code",
+      "description": "Article de code annoté (annotations doctrine et jurisprudence)"
+    },
+    {
+      "name": "lire_texte",
+      "description": "Lecture de textes législatifs et réglementaires"
     }
   ],
   "user_config": {
@@ -75,7 +87,7 @@
     }
   },
   "compatibility": {
-    "platforms": ["darwin", "linux"],
+    "platforms": ["darwin", "linux", "win32"],
     "runtimes": {
       "python": ">=3.11"
     }

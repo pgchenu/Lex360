@@ -69,6 +69,15 @@ _TOOL_CATALOG = {
             "commentaire", "auteur", "analyse", "encyclopédie", "synthèse",
         ],
     },
+    "codes_et_textes": {
+        "outils": ["arborescence_code", "lire_article_code", "lire_texte", "liens_document"],
+        "description": "Codes annotés, articles de loi, textes législatifs et réglementaires",
+        "mots_clés": [
+            "code", "article", "loi", "décret", "ordonnance", "législation",
+            "réglementation", "texte", "légifrance", "code civil", "code pénal",
+            "code du travail", "annoté", "annotation",
+        ],
+    },
     "analyse_procédurale": {
         "outils": ["rechercher_decision", "frise_chronologique", "liens_document (jurisprudence=True)"],
         "description": "Historique procédural, décisions liées, parcours d'une affaire",
@@ -94,6 +103,44 @@ _TOOL_CATALOG = {
         ],
     },
 }
+
+
+# ──────────────────────────────────────────────
+# Codes connus (nom → ID stable Légifrance)
+# ──────────────────────────────────────────────
+
+_CODES_CONNUS = {
+    "code civil": "SLD-LEGITEXT000006070721",
+    "code pénal": "SLD-LEGITEXT000006070719",
+    "code du travail": "SLD-LEGITEXT000006072050",
+    "code de commerce": "SLD-LEGITEXT000005634379",
+    "code de procédure civile": "SLD-LEGITEXT000006070716",
+    "code de procédure pénale": "SLD-LEGITEXT000006071154",
+    "code général des impôts": "SLD-LEGITEXT000006069577",
+    "code de la consommation": "SLD-LEGITEXT000006069565",
+    "code de la santé publique": "SLD-LEGITEXT000006072665",
+    "code de l'environnement": "SLD-LEGITEXT000006074220",
+    "code de l'urbanisme": "SLD-LEGITEXT000006074075",
+    "code de la propriété intellectuelle": "SLD-LEGITEXT000006069414",
+    "code de la sécurité sociale": "SLD-LEGITEXT000006073189",
+    "code général des collectivités territoriales": "SLD-LEGITEXT000006070633",
+    "code de justice administrative": "SLD-LEGITEXT000006070933",
+}
+
+
+def _resolve_code_id(code_id_ou_nom: str) -> str:
+    """Résout un nom de code ou un ID technique en ID stable."""
+    normalized = code_id_ou_nom.strip().lower()
+    if normalized in _CODES_CONNUS:
+        return _CODES_CONNUS[normalized]
+    if code_id_ou_nom.startswith("SLD-"):
+        return code_id_ou_nom
+    noms = ", ".join(n.title() for n in sorted(_CODES_CONNUS))
+    raise ValueError(
+        f"Code inconnu : « {code_id_ou_nom} ». "
+        f"Codes disponibles : {noms}. "
+        f"Ou passez directement un ID (SLD-LEGITEXT...)."
+    )
 
 
 def _guide_impl(contexte_juridique: str) -> str:
@@ -125,16 +172,18 @@ def _guide_impl(contexte_juridique: str) -> str:
 
     parts.append("## Lexis 360 vs OpenLégi\n")
     parts.append(
-        "- **Lexis 360** : doctrine (JurisClasseur, revues), métadonnées enrichies, "
+        "- **Lexis 360** : doctrine (JurisClasseur, revues), **codes annotés** "
+        "(annotations doctrine + JP sous chaque article), métadonnées enrichies, "
         "liens croisés, frises procédurales, jurisprudence annotée\n"
-        "- **OpenLégi** : textes de loi bruts, codes, Journal Officiel, "
-        "conventions collectives\n"
+        "- **OpenLégi** : textes de loi bruts (sans annotations), codes, "
+        "Journal Officiel, conventions collectives\n"
     )
     parts.append("## Obtenir un doc_id\n")
     parts.append(
-        "Les doc_id s'obtiennent via `rechercher` ou `rechercher_decision`. "
+        "Les doc_id s'obtiennent via `rechercher`, `rechercher_decision` "
+        "ou `arborescence_code` (pour les articles de codes). "
         "Format : `{PREFIX}_{KID}_{SUFFIX}` — ex. `EN_KEJC-238100_0KR8` (fascicule), "
-        "`JP_KODCASS-0519779_0KRH` (Cass.)."
+        "`JP_KODCASS-0519779_0KRH` (Cass.), `LG_SLD-LEGIARTI..._0WJN` (article de code)."
     )
 
     return "\n".join(parts)
@@ -190,7 +239,7 @@ def _format_metadata(meta) -> str:
 
     pairs = [
         ("Type", doc.type),
-        ("ID", doc.docIdStable or meta.id),
+        ("ID", doc.doc_id_stable or meta.id),
         ("Date", datetime.fromtimestamp(doc.date / 1000).strftime("%d/%m/%Y") if doc.date else None),
         ("Thématique", doc.thematique),
     ]
@@ -198,26 +247,26 @@ def _format_metadata(meta) -> str:
     if meta.jurisprudence:
         jp = meta.jurisprudence
         pairs.extend([
-            ("Juridiction", jp.classeJuridiction),
-            ("Date de décision", jp.dateDeDecision),
-            ("N° pourvoi", jp.numeroJurisprudence),
-            ("Solution", jp.solutionJuridique),
-            ("Type de litige", jp.typeLitiges),
+            ("Juridiction", jp.classe_juridiction),
+            ("Date de décision", jp.date_de_decision),
+            ("N° pourvoi", ", ".join(jp.numero_jurisprudence) if jp.numero_jurisprudence else None),
+            ("Solution", jp.solution_juridique),
+            ("Type de litige", ", ".join(jp.type_litiges) if jp.type_litiges else None),
         ])
 
     if meta.encyclo:
         enc = meta.encyclo
         pairs.extend([
-            ("Publication", enc.codePublication),
+            ("Publication", enc.code_publication),
             ("Auteur(s)", ", ".join(enc.auteur) if enc.auteur else None),
-            ("Type contribution", enc.typeContribution),
+            ("Type contribution", enc.type_contribution),
         ])
 
     if meta.revue:
         rev = meta.revue
         pairs.extend([
-            ("Revue", rev.matiereCode),
-            ("Numéro", ", ".join(rev.numero) if rev.numero else rev.numeroLabel),
+            ("Revue", rev.matiere_code),
+            ("Numéro", ", ".join(str(n) for n in rev.numero) if rev.numero else rev.numero_label),
             ("Date revue", rev.date),
         ])
 
@@ -238,7 +287,7 @@ def _format_links(sections: list) -> str:
         parts.append(f"## {section.title}\n")
         for link in section.links[:20]:  # Limiter à 20 par section
             date_str = f" ({link.date_dt.strftime('%d/%m/%Y')})" if link.date_dt else ""
-            parts.append(f"- **{link.title}**{date_str}\n  `{link.docId}`")
+            parts.append(f"- **{link.title}**{date_str}\n  `{link.doc_id}`")
         if len(section.links) > 20:
             parts.append(f"_… et {len(section.links) - 20} autres liens_")
         parts.append("")
@@ -273,6 +322,31 @@ def _format_timeline(timeline: dict) -> str:
             line += f"\n  `{entry.docId}`"
             parts.append(line)
 
+    return "\n".join(parts)
+
+
+def _format_code_tree(tree, profondeur: int = 3) -> str:
+    """Formate l'arborescence d'un code en Markdown."""
+    parts = [f"# {tree.title}\n"]
+
+    def _walk(nodes, depth=0):
+        if depth >= profondeur:
+            return
+        for node in nodes:
+            if node.children:
+                # Noeud structurel (livre, titre, chapitre…)
+                level = min(depth + 2, 6)  # h2 → h6
+                parts.append(f"{'#' * level} {node.title}")
+                _walk(node.children, depth + 1)
+            else:
+                # Feuille (article)
+                doc_id = f"LG_{node.doc_id_stable}_0WJN" if node.doc_id_stable else ""
+                if doc_id:
+                    parts.append(f"- {node.title} (`{doc_id}`)")
+                else:
+                    parts.append(f"- {node.title}")
+
+    _walk(tree.root)
     return "\n".join(parts)
 
 
@@ -367,6 +441,41 @@ def _table_des_matieres_impl(client: Lex360Client, doc_id: str) -> str:
     """Implémentation de l'outil table_des_matieres."""
     toc = client.get_toc(doc_id)
     return _format_toc(toc)
+
+
+def _arborescence_code_impl(
+    client: Lex360Client,
+    code_id_ou_nom: str,
+    profondeur: int = 3,
+) -> str:
+    """Implémentation de l'outil arborescence_code."""
+    code_id = _resolve_code_id(code_id_ou_nom)
+    tree = client.get_code_tree(code_id)
+    return _format_code_tree(tree, profondeur=profondeur)
+
+
+def _lire_article_code_impl(
+    client: Lex360Client,
+    doc_id: str,
+    annotations: bool = True,
+) -> str:
+    """Implémentation de l'outil lire_article_code."""
+    contenu = client.get_document(doc_id, format="markdown")
+    if not annotations:
+        return contenu
+
+    # Ajouter les annotations (liens doctrine + JP)
+    sections = client.get_links(doc_id, jp=False)
+    liens = _format_links(sections)
+    if liens and liens != "Aucun lien trouvé pour ce document.":
+        contenu += "\n\n---\n\n# Annotations\n\n" + liens
+
+    return contenu
+
+
+def _lire_texte_impl(client: Lex360Client, doc_id: str) -> str:
+    """Implémentation de l'outil lire_texte."""
+    return client.get_document(doc_id, format="auto")
 
 
 # ──────────────────────────────────────────────
@@ -515,6 +624,62 @@ def table_des_matieres(doc_id: str) -> str:
     try:
         client = _get_client()
         return _table_des_matieres_impl(client, doc_id)
+    except Exception as e:
+        return _handle_error(e)
+
+
+@mcp.tool(
+    description=(
+        "Arborescence d'un code juridique français (parties, livres, titres, "
+        "chapitres, articles). Retourne la structure avec les doc_id de chaque article. "
+        "Accepte un nom humain ('Code civil', 'Code du travail', 'Code pénal'…) "
+        "ou un ID technique (SLD-LEGITEXT...). "
+        "Utilisez profondeur=1 pour un aperçu, profondeur=3 pour le détail."
+    ),
+)
+def arborescence_code(code_id_ou_nom: str, profondeur: int = 3) -> str:
+    """Structure hiérarchique d'un code juridique."""
+    try:
+        client = _get_client()
+        return _arborescence_code_impl(client, code_id_ou_nom, profondeur=profondeur)
+    except ValueError as e:
+        return f"❌ {e}"
+    except Exception as e:
+        return _handle_error(e)
+
+
+@mcp.tool(
+    description=(
+        "Lit un article de code annoté depuis Lexis 360. "
+        "Retourne le texte de l'article en Markdown, enrichi des annotations "
+        "(doctrine, jurisprudence, textes connexes) placées sous l'article. "
+        "Les doc_id d'articles s'obtiennent via arborescence_code ou rechercher. "
+        "Format : LG_SLD-LEGIARTI..._0WJN. "
+        "annotations=True (défaut) ajoute les renvois doctrine et JP."
+    ),
+)
+def lire_article_code(doc_id: str, annotations: bool = True) -> str:
+    """Article de code annoté (texte + annotations doctrine/JP)."""
+    try:
+        client = _get_client()
+        return _lire_article_code_impl(client, doc_id, annotations=annotations)
+    except Exception as e:
+        return _handle_error(e)
+
+
+@mcp.tool(
+    description=(
+        "Lit un texte législatif, réglementaire ou tout document non couvert "
+        "par lire_doctrine ou lire_decision. "
+        "Pour : lois, décrets, ordonnances, publications officielles, etc. "
+        "Le format de sortie est détecté automatiquement (Markdown ou texte brut)."
+    ),
+)
+def lire_texte(doc_id: str) -> str:
+    """Lecture d'un texte législatif ou réglementaire."""
+    try:
+        client = _get_client()
+        return _lire_texte_impl(client, doc_id)
     except Exception as e:
         return _handle_error(e)
 

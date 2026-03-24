@@ -270,7 +270,7 @@ class CodeTreeNode(BaseModel):
 
     title: str = ""
     doc_id_stable: str = Field(default="", alias="doc_id_stable")
-    indice: int | None = None
+    indice: Any = None
     children: list[CodeTreeNode] = Field(default_factory=list)
 
 

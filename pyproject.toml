@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "lex360"
-version = "0.1.0"
+version = "0.2.0"
 description = "Client Python pour l'API privée de Lexis 360 Intelligence"
 requires-python = ">=3.11"
 dependencies = [

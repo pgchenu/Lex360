@@ -17,13 +17,13 @@ class TestMCPImport:
         assert hasattr(mcp_server, "main")
 
     def test_tool_count(self):
-        """Le serveur expose exactement 9 outils."""
+        """Le serveur expose exactement 12 outils."""
         from lex360.mcp_server import mcp
         tools = mcp._tool_manager._tools
-        assert len(tools) == 9, f"Attendu 9 outils, trouvé {len(tools)}: {list(tools.keys())}"
+        assert len(tools) == 12, f"Attendu 12 outils, trouvé {len(tools)}: {list(tools.keys())}"
 
     def test_tool_names(self):
-        """Les 9 outils attendus sont enregistrés."""
+        """Les 12 outils attendus sont enregistrés."""
         from lex360.mcp_server import mcp
         tools = set(mcp._tool_manager._tools.keys())
         expected = {
@@ -36,6 +36,9 @@ class TestMCPImport:
             "liens_document",
             "frise_chronologique",
             "table_des_matieres",
+            "arborescence_code",
+            "lire_article_code",
+            "lire_texte",
         }
         assert tools == expected, f"Différence: {tools.symmetric_difference(expected)}"
 
@@ -68,6 +71,12 @@ class TestGuide:
         result = _guide_impl("trouver des décisions sur le licenciement")
         assert "rechercher" in result
 
+    def test_guide_codes(self):
+        """Le guide recommande les outils codes pour un contexte d'article de code."""
+        from lex360.mcp_server import _guide_impl
+        result = _guide_impl("article du code civil sur la responsabilité")
+        assert "arborescence_code" in result
+
     def test_guide_returns_markdown(self):
         """Le guide retourne du Markdown."""
         from lex360.mcp_server import _guide_impl
@@ -84,6 +93,7 @@ class TestToolCatalog:
         assert "analyse_procédurale" in _TOOL_CATALOG
         assert "navigation" in _TOOL_CATALOG
         assert "recherche" in _TOOL_CATALOG
+        assert "codes_et_textes" in _TOOL_CATALOG
 
     def test_catalog_structure(self):
         from lex360.mcp_server import _TOOL_CATALOG
@@ -183,6 +193,27 @@ class TestFrise:
         assert isinstance(result, str)
 
 
+class TestResolveCodeId:
+    """Tests unitaires de la résolution des noms de codes."""
+
+    def test_resolve_code_civil(self):
+        from lex360.mcp_server import _resolve_code_id
+        assert _resolve_code_id("Code civil") == "SLD-LEGITEXT000006070721"
+
+    def test_resolve_code_civil_lowercase(self):
+        from lex360.mcp_server import _resolve_code_id
+        assert _resolve_code_id("code civil") == "SLD-LEGITEXT000006070721"
+
+    def test_resolve_sld_passthrough(self):
+        from lex360.mcp_server import _resolve_code_id
+        assert _resolve_code_id("SLD-LEGITEXT000006070721") == "SLD-LEGITEXT000006070721"
+
+    def test_resolve_unknown_raises(self):
+        from lex360.mcp_server import _resolve_code_id
+        with pytest.raises(ValueError):
+            _resolve_code_id("Code inconnu")
+
+
 @pytest.mark.integration
 class TestTDM:
 
@@ -191,3 +222,50 @@ class TestTDM:
         from lex360.mcp_server import _table_des_matieres_impl
         result = _table_des_matieres_impl(client, "EN_KEJC-238100_0KR8")
         assert isinstance(result, str)
+
+
+@pytest.mark.integration
+class TestArborescenceCode:
+
+    def test_arborescence_code_civil(self, client):
+        """Arborescence du Code civil à profondeur 2."""
+        from lex360.mcp_server import _arborescence_code_impl
+        result = _arborescence_code_impl(client, "Code civil", profondeur=2)
+        assert isinstance(result, str)
+        assert "Code civil" in result or "civil" in result.lower()
+
+    def test_arborescence_code_profondeur_1(self, client):
+        """Profondeur 1 retourne un aperçu court."""
+        from lex360.mcp_server import _arborescence_code_impl
+        result = _arborescence_code_impl(client, "Code civil", profondeur=1)
+        assert isinstance(result, str)
+        assert len(result) > 10
+
+
+@pytest.mark.integration
+class TestLireArticleCode:
+
+    def test_lire_article_code(self, client):
+        """Lecture d'un article de code avec annotations."""
+        from lex360.mcp_server import _lire_article_code_impl
+        result = _lire_article_code_impl(client, "LG_SLD-LEGIARTI000006419280_0WJN")
+        assert isinstance(result, str)
+        assert len(result) > 50
+
+    def test_lire_article_code_sans_annotations(self, client):
+        """Lecture d'un article de code sans annotations."""
+        from lex360.mcp_server import _lire_article_code_impl
+        result = _lire_article_code_impl(client, "LG_SLD-LEGIARTI000006419280_0WJN", annotations=False)
+        assert isinstance(result, str)
+        assert len(result) > 50
+
+
+@pytest.mark.integration
+class TestLireTexte:
+
+    def test_lire_texte(self, client):
+        """Lecture d'un texte généraliste."""
+        from lex360.mcp_server import _lire_texte_impl
+        result = _lire_texte_impl(client, "LG_SLD-LEGIARTI000006419280_0WJN")
+        assert isinstance(result, str)
+        assert len(result) > 50

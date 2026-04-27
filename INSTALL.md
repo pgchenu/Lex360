@@ -7,7 +7,7 @@
 
 ## Étape 1 — Télécharger le fichier `.mcpb`
 
-Récupérez `lex360-0.2.0.mcpb` depuis les [releases](.).
+Récupérez `lex360-0.3.0.mcpb` depuis les [releases](./releases/).
 
 ## Étape 2 — Ouvrir les extensions Claude Desktop
 
@@ -44,6 +44,8 @@ Collez le token dans le champ et cliquez **Enregistrer**.
 L'extension doit afficher **Activé** avec le toggle bleu. Vous pouvez maintenant utiliser les outils lex360 dans vos conversations Claude.
 
 ![Extension activée](screenshots/screenshot6.png)
+
+> N'oubliez pas de cocher Lex360 dans les connecteurs disponibles dans votre conversation avec Claude
 
 ---
 

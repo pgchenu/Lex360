@@ -43,6 +43,27 @@ class TestMCPImport:
         assert tools == expected, f"Différence: {tools.symmetric_difference(expected)}"
 
 
+class TestPrompts:
+    """Vérifie l'enregistrement du prompt MCP côté serveur."""
+
+    def test_prompt_count(self):
+        from lex360.mcp_server import mcp
+        prompts = mcp._prompt_manager._prompts
+        assert list(prompts.keys()) == ["guide_lexis360"]
+
+    def test_guide_prompt_content(self):
+        from lex360.mcp_server import _GUIDE_PROMPT_FR
+        # Le contenu doit couvrir les angles essentiels du guide.
+        for needle in (
+            "lire_doctrine",
+            "EN_",
+            "JurisClasseur",
+            "LEX_TOKEN",
+            "halluciner",
+        ):
+            assert needle in _GUIDE_PROMPT_FR
+
+
 class TestGuide:
     """Tests unitaires de l'outil guide (pas d'appel réseau)."""
 

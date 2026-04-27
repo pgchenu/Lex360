@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass, field
+from typing import Optional
 
 from bs4 import BeautifulSoup, NavigableString, Tag
 
@@ -315,6 +317,177 @@ def _walk_list(tag: Tag, parts: list[str], ordered: bool, depth: int = 0) -> Non
             if sub_list:
                 _walk_list(sub_list, parts, ordered=(sub_list.name == "ol"), depth=depth + 1)
 
+
+# --- Table des matières (UID hiérarchiques) + extraction par section ---
+
+@dataclass
+class HeadingNode:
+    """Un noeud de table des matières avec UID hiérarchique."""
+    uid: str
+    title: str
+    level: int  # 1..6
+    children: list["HeadingNode"] = field(default_factory=list)
+    parent: Optional["HeadingNode"] = field(default=None, repr=False)
+
+    @property
+    def breadcrumb(self) -> str:
+        """Chaîne 'Parent > Enfant > Petit-enfant'."""
+        chain: list[str] = []
+        node: Optional[HeadingNode] = self
+        while node is not None:
+            chain.append(node.title)
+            node = node.parent
+        return " > ".join(reversed(chain))
+
+
+def build_toc(html: str) -> tuple[list[HeadingNode], dict[str, HeadingNode]]:
+    """
+    Construit l'arbre des titres avec UID hiérarchiques (s1, s1.1, s2, ...).
+
+    Pour chaque h1..h6 rencontré dans l'ordre du document, l'attache au plus
+    récent ancêtre de niveau strictement inférieur. Tolère les sauts de niveau
+    (ex : h1 suivi directement de h3).
+
+    Retourne (racines, index uid → noeud).
+    """
+    soup = _clean_soup(html)
+    body = soup.find("body") or soup
+    headings = body.find_all(["h1", "h2", "h3", "h4", "h5", "h6"])
+
+    roots: list[HeadingNode] = []
+    by_uid: dict[str, HeadingNode] = {}
+    stack: list[HeadingNode] = []
+
+    for tag in headings:
+        title = tag.get_text(strip=True)
+        if not title:
+            continue
+        level = int(tag.name[1])
+
+        while stack and stack[-1].level >= level:
+            stack.pop()
+
+        parent = stack[-1] if stack else None
+        siblings = parent.children if parent else roots
+        index = len(siblings) + 1
+        uid = f"{parent.uid}.{index}" if parent else f"s{index}"
+
+        node = HeadingNode(uid=uid, title=title, level=level, parent=parent)
+        siblings.append(node)
+        by_uid[uid] = node
+        stack.append(node)
+
+    return roots, by_uid
+
+
+def _flatten_toc(roots: list[HeadingNode]) -> list[HeadingNode]:
+    """Aplatit l'arbre dans l'ordre du document."""
+    flat: list[HeadingNode] = []
+    def _walk(nodes: list[HeadingNode]) -> None:
+        for n in nodes:
+            flat.append(n)
+            _walk(n.children)
+    _walk(roots)
+    return flat
+
+
+_HEADING_LINE_RE = re.compile(r"^(#{1,6})\s+\S")
+
+
+def _heading_line_indices(markdown_lines: list[str]) -> list[tuple[int, int]]:
+    """Indices et niveaux des lignes de titre dans le markdown rendu."""
+    out: list[tuple[int, int]] = []
+    for i, line in enumerate(markdown_lines):
+        m = _HEADING_LINE_RE.match(line)
+        if m:
+            out.append((i, len(m.group(1))))
+    return out
+
+
+def _split_markdown_by_uid(
+    markdown: str,
+    roots: list[HeadingNode],
+) -> dict[str, str]:
+    """Découpe le markdown rendu en sous-arbres par UID.
+
+    Le rendu HTML→Markdown parcourt le DOM dans l'ordre du document, donc la
+    séquence des lignes de titre dans le markdown correspond à `_flatten_toc`.
+    """
+    flat = _flatten_toc(roots)
+    if not flat:
+        return {}
+
+    lines = markdown.split("\n")
+    heading_lines = _heading_line_indices(lines)
+
+    if len(heading_lines) != len(flat):
+        # Désaccord (ex : titre filtré côté rendu) — pas de découpage fiable.
+        return {n.uid: "" for n in flat}
+
+    result: dict[str, str] = {}
+    for idx, node in enumerate(flat):
+        start_line, _level = heading_lines[idx]
+        end_line = len(lines)
+        for j in range(idx + 1, len(flat)):
+            if flat[j].level <= node.level:
+                end_line = heading_lines[j][0]
+                break
+        result[node.uid] = "\n".join(lines[start_line:end_line]).rstrip()
+    return result
+
+
+def toc_to_dict(
+    roots: list[HeadingNode],
+    full_markdown: str,
+    *,
+    doc_id: str = "",
+    title: str = "",
+) -> dict:
+    """Sérialise la ToC au format JSON documenté (uid, title, chars, children)."""
+    sliced = _split_markdown_by_uid(full_markdown, roots)
+
+    def _node_dict(n: HeadingNode) -> dict:
+        d: dict = {
+            "uid": n.uid,
+            "title": n.title,
+            "chars": len(sliced.get(n.uid, "")),
+        }
+        if n.children:
+            d["children"] = [_node_dict(c) for c in n.children]
+        return d
+
+    return {
+        "doc_id": doc_id,
+        "title": title or (roots[0].title if roots else ""),
+        "char_count_total": len(full_markdown),
+        "sections": [_node_dict(n) for n in roots],
+    }
+
+
+def extract_sections(
+    full_markdown: str,
+    uids: list[str],
+    roots: list[HeadingNode],
+    by_uid: dict[str, HeadingNode],
+) -> str:
+    """Retourne le markdown des sous-arbres demandés, préfixés d'un breadcrumb.
+
+    UIDs inconnus produisent un commentaire `<!-- {uid} not found -->`
+    sans interrompre la collecte.
+    """
+    sliced = _split_markdown_by_uid(full_markdown, roots)
+    parts: list[str] = []
+    for uid in uids:
+        node = by_uid.get(uid)
+        if node is None:
+            parts.append(f"<!-- {uid} not found -->")
+            continue
+        body = sliced.get(uid, "").strip()
+        parts.append(f"<!-- {uid} — {node.breadcrumb} -->\n{body}")
+    return "\n\n---\n\n".join(parts)
+
+
+# --- Rendu Markdown des tableaux ---
 
 def _table_to_markdown(table: Tag) -> str:
     """Convertit un tableau HTML en tableau Markdown."""

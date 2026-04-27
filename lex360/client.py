@@ -18,6 +18,9 @@ from lex360.models import (
 
 logger = logging.getLogger(__name__)
 
+# Seuil sous lequel `get_doctrine` retourne le markdown complet plutôt qu'une ToC
+_TOC_FALLBACK_THRESHOLD = 3000
+
 # Types de documents dont le contenu est structuré (headings) → Markdown
 _STRUCTURED_TYPES = {
     "DOCTRINE_FASCICULE",
@@ -147,6 +150,49 @@ class Lex360Client:
         if doc_type in _STRUCTURED_TYPES:
             return html_to_markdown(html)
         return html_to_text(html)
+
+    def get_doctrine(
+        self,
+        doc_id: str,
+        *,
+        sections: list[str] | None = None,
+    ) -> str | dict:
+        """
+        Lecture ToC-first d'un document de doctrine.
+
+        - sections=None : retourne la ToC sous forme de dict
+          ({"doc_id", "title", "char_count_total", "sections": [...]}).
+        - sections=["*"] : retourne le markdown complet.
+        - sections=[uid, ...] : retourne le markdown des sous-arbres demandés,
+          chacun préfixé par un commentaire breadcrumb. Les UIDs inconnus sont
+          marqués `<!-- {uid} not found -->`.
+
+        Fast-path : si le markdown rendu est plus court que
+        `_TOC_FALLBACK_THRESHOLD` ou si le document n'a aucun titre, retourne
+        directement le markdown complet (str) au lieu de la ToC.
+        """
+        from lex360.documents import get_content
+        from lex360.text import (
+            html_to_markdown,
+            build_toc,
+            toc_to_dict,
+            extract_sections,
+        )
+
+        html = get_content(self.transport, doc_id)
+        markdown = html_to_markdown(html)
+        roots, by_uid = build_toc(html)
+
+        if sections == ["*"]:
+            return markdown
+
+        if sections:
+            return extract_sections(markdown, sections, roots, by_uid)
+
+        if not roots or len(markdown) < _TOC_FALLBACK_THRESHOLD:
+            return markdown
+
+        return toc_to_dict(roots, markdown, doc_id=doc_id)
 
     # ──────────────────────────────────────────────
     # Navigation / liens (→ JSON)

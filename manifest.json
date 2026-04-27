@@ -1,9 +1,10 @@
 {
   "manifest_version": "0.4",
   "name": "lex360",
-  "display_name": "Lexis 360 Intelligence",
-  "version": "0.2.0",
+  "display_name": "Lex360",
+  "version": "0.3.0",
   "description": "Doctrine juridique française, jurisprudence enrichie et navigation inter-documents via Lexis 360 Intelligence.",
+  "icon": "logo.png",
   "author": {
     "name": "Pierre-Gilles Chenu"
   },

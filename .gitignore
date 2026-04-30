@@ -13,10 +13,12 @@ build/
 venv/
 .pytest_cache/
 
-# Tokens
+# Tokens / secrets
 .lex360/
 token.json
 token.env
+.env
+.env.*
 
 # MCPB
 *.mcpb

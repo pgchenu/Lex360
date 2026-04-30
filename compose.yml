@@ -1,0 +1,53 @@
+# lex360 remote MCP gateway.
+#
+# Two services:
+#   - gateway : the Python app (FastAPI) — webpage, OAuth, MCP API.
+#               `expose:` only — NOT bound to the host. Reachable only by
+#               Caddy on the internal docker network.
+#   - caddy   : reverse proxy that terminates TLS via auto-Let's-Encrypt.
+#               The only service exposed to the internet (ports 80/443).
+#
+# BEFORE FIRST RUN: edit the two values below — DOMAIN and ACME_EMAIL.
+# DOMAIN must already point at this host's public IP via a DNS A record.
+#
+# Note: the OAuth signing secret is auto-generated in-memory on every
+# container start. It is never written to disk, never logged. A restart
+# therefore invalidates already-issued OAuth artifacts (re-link required
+# for ChatGPT / claude.ai). Raw Bearer flows (Claude Code, Cursor,
+# Le Chat, Perplexity) are unaffected.
+
+services:
+  gateway:
+    build: .
+    expose:
+      - "8000"
+    environment:
+      DOMAIN: lex360.example.com
+      SESSION_IDLE_TIMEOUT: "1800"
+      LOG_LEVEL: INFO
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      DOMAIN: lex360.example.com
+      ACME_EMAIL: you@example.com
+    depends_on:
+      - gateway
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

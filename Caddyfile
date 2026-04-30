@@ -1,0 +1,11 @@
+{
+    email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+    encode gzip
+    reverse_proxy gateway:8000 {
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+    }
+}

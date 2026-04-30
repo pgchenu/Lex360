@@ -23,6 +23,15 @@ screenshots/
 CLAUDE.md
 .claude/
 
+# Remote MCP gateway — déploiement Docker, hors bundle Claude Desktop
+gateway/
+Dockerfile
+compose.yml
+Caddyfile
+.dockerignore
+.env
+.env.*
+
 # OS / outils
 .DS_Store
 .git/

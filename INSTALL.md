@@ -7,7 +7,7 @@
 
 ## Étape 1 — Télécharger le fichier `.mcpb`
 
-Récupérez `lex360-0.3.0.mcpb` depuis les [releases](./releases/).
+Récupérez `lex360-0.3.0.mcpb` depuis les [releases](https://github.com/pgchenu/Lex360/releases).
 
 ## Étape 2 — Ouvrir les extensions Claude Desktop
 

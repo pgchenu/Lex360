@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>lex360 — remote MCP gateway</title>
+<link rel="icon" type="image/png" href="/logo.png">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0e1116;
+  --bg-elev: #161b22;
+  --bg-input: #0b0f14;
+  --fg: #e6edf3;
+  --muted: #8b949e;
+  --accent: #5b9bff;
+  --accent-fg: #0b0f14;
+  --border: #30363d;
+  --error: #f85149;
+  --ok: #3fb950;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+header { text-align: center; margin-bottom: 2rem; }
+.logo { width: 64px; height: 64px; object-fit: contain; }
+h1 { font-size: 1.5rem; margin: 0.5rem 0 0.25rem; }
+h2 { font-size: 1.1rem; margin: 1.75rem 0 0.75rem; color: var(--fg); }
+.subtitle { color: var(--muted); margin: 0; }
+
+section { margin-bottom: 1.5rem; }
+
+ol { padding-left: 1.25rem; }
+ol li { margin-bottom: 0.5rem; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+kbd {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+}
+
+.snippet {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.snippet pre {
+  flex: 1;
+  margin: 0;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9rem;
+  overflow-x: auto;
+}
+
+textarea, button, input, pre code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+textarea {
+  width: 100%;
+  background: var(--bg-input);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  resize: vertical;
+  min-height: 120px;
+}
+textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+button {
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  padding: 0.55rem 1rem;
+  font-size: 0.95rem;
+  background: var(--bg-elev);
+  color: var(--fg);
+  transition: background 80ms ease;
+}
+button:hover { background: #1f242c; }
+button:disabled { opacity: 0.6; cursor: progress; }
+
+.primary {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+  margin-top: 0.75rem;
+  width: 100%;
+  font-weight: 600;
+}
+.primary:hover { background: #4884e0; }
+
+.ghost { background: transparent; }
+
+.alert {
+  border-radius: 6px;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--border);
+}
+.alert.error { border-color: var(--error); color: var(--error); background: #2a0e10; }
+.alert.ok    { border-color: var(--ok);    color: var(--ok);    background: #0e2a14; }
+
+.clients details {
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-elev);
+  padding: 0 0.85rem;
+}
+.clients summary {
+  cursor: pointer;
+  padding: 0.65rem 0;
+  font-weight: 600;
+}
+.clients details[open] summary { border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
+.clients pre {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  overflow-x: auto;
+  font-size: 0.85rem;
+}
+.clients code { font-family: inherit; }
+
+footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="/logo.png" alt="" class="logo">
+    <h1>lex360 remote MCP</h1>
+    <p class="subtitle">
+      {% if oauth_mode %}
+        An MCP client is asking to connect on your behalf. Paste your Lexis 360 JWT to authorize it.
+      {% else %}
+        Your Lexis 360 JWT is your only credential here. Paste it below to verify, or configure your MCP client directly.
+      {% endif %}
+    </p>
+  </header>
+
+  <section class="howto">
+    <h2>1 · Get your JWT</h2>
+    <ol>
+      <li>Open <a href="https://www.lexis360intelligence.fr/" target="_blank" rel="noopener noreferrer">lexis360intelligence.fr</a> and sign in.</li>
+      <li>Open the developer console — <kbd>F12</kbd>, then the <em>Console</em> tab.</li>
+      <li>Paste this snippet and press Enter:
+        <div class="snippet">
+          <pre id="snippet">localStorage.getItem('access_token')</pre>
+          <button type="button" id="copy-btn" class="ghost">Copy</button>
+        </div>
+      </li>
+      <li>Copy the returned string (without the surrounding quotes) and paste it into the box below.</li>
+    </ol>
+  </section>
+
+  <section class="paste">
+    <h2>2 · Paste it here</h2>
+    {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
+    {% if result %}<div class="alert ok">{{ result }}</div>{% endif %}
+
+    <form method="POST" action="{% if oauth_mode %}/authorize/submit{% else %}/{% endif %}" id="jwt-form">
+      <textarea name="lexis_jwt" id="lexis_jwt" rows="6" required
+        placeholder="eyJhbGciOi..." spellcheck="false" autocomplete="off"></textarea>
+      {% if oauth_mode %}
+        <input type="hidden" name="response_type"        value="{{ oauth_params.response_type }}">
+        <input type="hidden" name="client_id"            value="{{ oauth_params.client_id }}">
+        <input type="hidden" name="redirect_uri"         value="{{ oauth_params.redirect_uri }}">
+        <input type="hidden" name="code_challenge"       value="{{ oauth_params.code_challenge }}">
+        <input type="hidden" name="code_challenge_method" value="{{ oauth_params.code_challenge_method }}">
+        <input type="hidden" name="state"                value="{{ oauth_params.state }}">
+        <input type="hidden" name="scope"                value="{{ oauth_params.scope }}">
+      {% endif %}
+      <button type="submit" class="primary" id="submit-btn">
+        {% if oauth_mode %}Authorize MCP client{% else %}Verify JWT{% endif %}
+      </button>
+    </form>
+  </section>
+
+  {% if not oauth_mode %}
+  <section class="clients">
+    <h2>3 · Connect your MCP client</h2>
+
+    <details open>
+      <summary>Claude Code (CLI)</summary>
+      <pre><code>claude mcp add --transport http lex360 \
+  {{ issuer }}/mcp \
+  --header "Authorization: Bearer &lt;your JWT&gt;"</code></pre>
+    </details>
+
+    <details>
+      <summary>Cursor</summary>
+      <pre><code>{
+  "mcpServers": {
+    "lex360": {
+      "url": "{{ issuer }}/mcp",
+      "headers": {
+        "Authorization": "Bearer &lt;your JWT&gt;"
+      }
+    }
+  }
+}</code></pre>
+    </details>
+
+    <details>
+      <summary>Mistral Le Chat / Perplexity</summary>
+      <p>Add a custom MCP connector pointing at <code>{{ issuer }}/mcp</code>, choose <em>HTTP Bearer Token</em> / <em>API Key</em> auth, and paste your JWT as the token.</p>
+    </details>
+
+    <details>
+      <summary>ChatGPT / claude.ai (OAuth-only clients)</summary>
+      <p>These clients require OAuth 2.1 with discovery. Point them at:</p>
+      <pre><code>{{ issuer }}/.well-known/oauth-protected-resource</code></pre>
+      <p>You will be redirected here to paste your JWT, then your client receives a wrapped access token automatically.</p>
+    </details>
+  </section>
+  {% endif %}
+
+  <footer>
+    <p>Your JWT is never stored. It's encrypted into the access token returned to your MCP client and discarded server-side.</p>
+  </footer>
+</main>
+<script>
+(() => {
+  const copyBtn = document.getElementById('copy-btn');
+  const snippet = document.getElementById('snippet');
+  if (copyBtn && snippet) {
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(snippet.textContent.trim());
+        const original = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = original; }, 1200);
+      } catch {
+        copyBtn.textContent = 'Copy failed';
+      }
+    });
+  }
+
+  const form = document.getElementById('jwt-form');
+  const textarea = document.getElementById('lexis_jwt');
+  const submit = document.getElementById('submit-btn');
+  if (form && textarea && submit) {
+    form.addEventListener('submit', (e) => {
+      const value = textarea.value.trim();
+      const looksLikeJwt = value.split('.').length === 3 && value.length > 40;
+      if (!looksLikeJwt) {
+        e.preventDefault();
+        alert('That does not look like a JWT. Expected three dot-separated parts.');
+        return;
+      }
+      submit.disabled = true;
+      submit.textContent = 'Working…';
+    });
+  }
+})();
+</script>
+</body>
+</html>

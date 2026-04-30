@@ -16,7 +16,7 @@ Installez l'extension MCP (`.mcpb`) dans Claude Desktop et accédez directement 
 
 ### Installation rapide
 
-1. Télécharger `lex360-0.3.0.mcpb` depuis les [releases](./releases/)
+1. Télécharger `lex360-0.3.0.mcpb` depuis les [releases](https://github.com/pgchenu/Lex360/releases)
 2. Glisser le fichier dans **Paramètres > Extensions** de Claude Desktop
 3. Coller votre token JWT et cliquer **Enregistrer**
 

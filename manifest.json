@@ -82,7 +82,7 @@
     "lex_token": {
       "type": "string",
       "title": "Token JWT Lexis 360",
-      "description": "Token JWT (expire après 24h). Connectez-vous sur lexis360intelligence.fr, ouvrez la console (F12 > Console) et collez : localStorage.getItem('access_token') — copiez la valeur retournée ici sans les guillemets. Fonctionne dans Chrome, Firefox, Safari et Edge.",
+      "description": "Token JWT (expire après 24h). Connectez-vous sur lexis360intelligence.fr, ouvrez la console (F12 > Console) et collez : localStorage.getItem('access_token') — copiez la valeur retournée ici (les guillemets éventuels en début et fin sont retirés automatiquement). Fonctionne dans Chrome, Firefox, Safari et Edge.",
       "required": true,
       "sensitive": true
     }

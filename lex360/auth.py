@@ -19,6 +19,14 @@ DEFAULT_TOKEN_PATH = Path.home() / ".lex360" / "token.json"
 EXPIRY_BUFFER_SECONDS = 300
 
 
+def _strip_token(token: str) -> str:
+    """Retire espaces et guillemets éventuels autour du token."""
+    t = token.strip()
+    if len(t) >= 2 and t[0] == t[-1] and t[0] in ("'", '"'):
+        t = t[1:-1].strip()
+    return t
+
+
 def decode_jwt_payload(token: str) -> dict:
     """Décode le payload d'un JWT sans vérifier la signature."""
     try:
@@ -90,7 +98,7 @@ class TokenManager:
         # 1. Variable d'environnement
         env_token = os.environ.get("LEX_TOKEN")
         if env_token:
-            self._access_token = env_token.strip()
+            self._access_token = _strip_token(env_token)
             logger.debug("Token chargé depuis la variable d'environnement LEX_TOKEN.")
             return self._access_token
 
@@ -98,8 +106,10 @@ class TokenManager:
         if self._token_path.exists():
             try:
                 data = json.loads(self._token_path.read_text(encoding="utf-8"))
-                self._access_token = data.get("access_token")
-                self._refresh_token = data.get("refresh_token")
+                at = data.get("access_token")
+                rt = data.get("refresh_token")
+                self._access_token = _strip_token(at) if at else None
+                self._refresh_token = _strip_token(rt) if rt else None
                 logger.debug("Token chargé depuis %s", self._token_path)
                 return self._access_token
             except (json.JSONDecodeError, OSError) as e:
@@ -109,9 +119,10 @@ class TokenManager:
 
     def save(self, access_token: str, refresh_token: str | None = None) -> None:
         """Sauvegarde les tokens dans le fichier."""
+        access_token = _strip_token(access_token)
         self._access_token = access_token
         if refresh_token:
-            self._refresh_token = refresh_token
+            self._refresh_token = _strip_token(refresh_token)
 
         self._token_path.parent.mkdir(parents=True, exist_ok=True)
         data = {"access_token": access_token}
@@ -131,7 +142,7 @@ class TokenManager:
 
     def set_token(self, token: str) -> None:
         """Définit le token manuellement (sans sauvegarder)."""
-        self._access_token = token
+        self._access_token = _strip_token(token)
 
     def get_token_info(self) -> dict:
         """Retourne les informations du token courant (payload JWT décodé)."""

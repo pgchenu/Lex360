@@ -33,11 +33,26 @@ Après l'installation, Claude Desktop vous demande le token JWT. Pour le récup�
    ```js
    localStorage.getItem('access_token')
    ```
-4. Copiez la valeur retournée **sans les guillemets**
+4. Copiez la valeur retournée (les guillemets éventuels en début et fin sont retirés automatiquement)
 
 Collez le token dans le champ et cliquez **Enregistrer**.
 
 ![Boîte de dialogue de configuration du token](screenshots/screenshot5.png)
+
+### Astuce — Bookmarklet de récupération du token
+
+Pour éviter d'ouvrir la console à chaque renouvellement :
+
+1. Créez un nouveau favori dans votre navigateur, nommez-le « Lex360 token ».
+2. Comme URL, collez exactement le code ci-dessous (également disponible dans [`bookmarklet.txt`](bookmarklet.txt)) :
+   ```js
+   javascript:(()=>{const H='lexis360intelligence.fr';if(!location.hostname.endsWith(H)){if(confirm('Ouvrir Lexis 360 ? (connectez-vous via votre portail puis recliquez sur ce favori)'))location.href='https://www.'+H+'/';return;}const t=localStorage.getItem('access_token');if(!t){alert('Aucun token. Connectez-vous d\'abord (portail universitaire le cas échéant), puis recliquez sur ce favori.');location.href='https://www.'+H+'/';return;}const c=t.replace(/^"|"$/g,'');navigator.clipboard.writeText(c).then(()=>alert('Token copié ('+c.length+' chars, finit par …'+c.slice(-12)+')'),()=>prompt('Copiez le token :',c));})();
+   ```
+3. Connectez-vous une fois sur lexis360intelligence.fr (directement ou via votre portail universitaire / SSO Shibboleth / ENT).
+4. Une fois la page Lexis 360 chargée, cliquez sur le favori : le token est copié dans le presse-papier.
+5. Collez-le (`Cmd+V` / `Ctrl+V`) dans le champ de configuration de l'extension.
+
+Si le bookmarklet est cliqué hors d'une session connectée, il vous redirige vers Lexis 360 pour vous reconnecter.
 
 ## Étape 5 — Vérifier l'activation
 

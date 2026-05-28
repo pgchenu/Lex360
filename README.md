@@ -124,7 +124,9 @@ pip install -e ".[dev]"
 <a id="authentification"></a>
 ## Authentification
 
-Le token JWT (`access_token`) se récupère depuis le `localStorage` du navigateur sur une session Lexis 360 connectée.
+Le token JWT (`access_token`) se récupère depuis le `localStorage` du navigateur sur une session Lexis 360 connectée. Les guillemets éventuels en début et fin (renvoyés par `localStorage.getItem`) sont retirés automatiquement au chargement.
+
+Un **bookmarklet** est fourni dans [`bookmarklet.txt`](bookmarklet.txt) pour copier le token en un clic depuis n'importe quelle page lexis360intelligence.fr (utile après une reconnexion via portail universitaire / SSO). Voir [`INSTALL.md`](INSTALL.md#astuce--bookmarklet-de-récupération-du-token) pour le mode d'emploi.
 
 ```bash
 # Option 1 : variable d'environnement

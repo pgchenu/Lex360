@@ -22,6 +22,7 @@ web/
 screenshots/
 CLAUDE.md
 .claude/
+bookmarklet.txt
 
 # Remote MCP gateway — déploiement Docker, hors bundle Claude Desktop
 gateway/
